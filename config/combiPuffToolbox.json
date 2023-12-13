@@ -1,0 +1,16 @@
+[
+    {
+        "flavor": "",
+        "hook": "",
+        "importance": "",
+        "localHookTemplate": "config/combiPuffToolboxLocalHookTemplate.m",
+        "printLocalHookOutput": "1",
+        "name": "combiPuffToolbox",
+        "pathPlacement": "append",
+        "subfolder": "code",
+        "toolboxRoot": "",
+        "type": "git",
+        "update": "",
+        "url": ""
+    }
+]
