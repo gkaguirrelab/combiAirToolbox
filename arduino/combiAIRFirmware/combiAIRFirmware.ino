@@ -109,7 +109,7 @@ void setup() {
   mcp.setChannelValue(MCP4728_CHANNEL_D, 0);
 
   // Set the pressure to zero
-  setPressure(0);
+      setPressure(stimSettings[stimPressureIdxSeq[trialIdx]]);
 
   // Show the console menu
   showModeMenu();
@@ -213,16 +213,15 @@ void getRun() {
     stringComplete = false;
     if (strncmp(inputString, "GO", 2) == 0) {
       Serial.println("Start sequence");
-      setPressure(stimSettings[stimPressureIdxSeq[trialIdx]]);
+      trialIdx = 0;
       modulationState = true;
-      lastTrialStartTime = micros();
+      lastTrialStartTime = micros()-trialDurMicroSecs;
       sequenceStartTime = micros();
     }
     if (strncmp(inputString, "SP", 2) == 0) {
       Serial.println("Stop sequence");
       modulationState = false;
       setPressure(0);
-      trialIdx = 0;
     }
     if (strncmp(inputString, "DM", 2) == 0) {
       modulationState = false;
