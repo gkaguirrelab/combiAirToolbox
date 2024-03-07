@@ -1,4 +1,4 @@
-function combiPuffToolboxLocalHook
+function combiAirToolboxLocalHook
 
 %  combiPuffToolboxLocalHook
 %
@@ -16,7 +16,7 @@ function combiPuffToolboxLocalHook
 
 
 % Say hello.
-projectName = 'combiPuffToolbox';
+projectName = 'combiAirToolbox';
 
 % Delete any old prefs
 if (ispref(projectName))
