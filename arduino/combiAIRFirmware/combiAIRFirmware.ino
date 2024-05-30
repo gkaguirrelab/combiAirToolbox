@@ -80,8 +80,9 @@ int stimDurMsSeq[] = {
 };
 int nTrials = sizeof(stimPressureIdxSeq) / sizeof(stimPressureIdxSeq[0]);
 
-// Puff delivery values
-
+// Puff delivery values in direct mode
+int stimDurMsDirect = 250;
+int stimPressureDirect = 0;
 
 // setup
 void setup() {
@@ -109,7 +110,7 @@ void setup() {
   mcp.setChannelValue(MCP4728_CHANNEL_D, 0);
 
   // Set the pressure to zero
-      setPressure(stimSettings[stimPressureIdxSeq[trialIdx]]);
+  setPressure(stimSettings[stimPressureIdxSeq[trialIdx]]);
 
   // Show the console menu
   showModeMenu();
@@ -145,7 +146,7 @@ void loop() {
       setPressure(stimSettings[stimPressureIdxSeq[trialIdx]]);
     }
     // Check if we have finished the sequence
-    if (trialIdx > (nTrials-1)) {
+    if (trialIdx > (nTrials - 1)) {
       float elapsedTimeSecs = (currentTime - sequenceStartTime) / 1e6;
       modulationState = false;
       printLine("Finished sequence. Elapsed time: ", elapsedTimeSecs + 1, " seconds.");
@@ -192,6 +193,35 @@ void getConfig() {
 void getDirect() {
   // Operate in modal state waiting for input
   waitForNewString();
+
+  // Set the stimulus pressure level.
+  if (strncmp(inputString, "SP", 2) == 0) {
+    Serial.println("SP:");
+    clearInputString();
+    waitForNewString();
+    stimPressureDirect = atoi(inputString);
+    Serial.println(stimPressureDirect);
+    clearInputString();
+    setPressure(stimPressureDirect);
+  }
+
+   // Set the stimulus duration in ms.
+  if (strncmp(inputString, "SD", 2) == 0) {
+    Serial.println("SD:");
+    clearInputString();
+    waitForNewString();
+    stimDurMsDirect = atoi(inputString);
+    Serial.println(stimPressureDirect);
+    clearInputString();
+  }
+
+  // Issue a puff at the currently set pressure
+  if (strncmp(inputString, "PP", 2) == 0) {
+    Serial.println("PP:");
+    clearInputString();
+    deliverPuff(stimDurMsDirect);
+  }
+
   if (strncmp(inputString, "RM", 2) == 0) {
     modulationState = false;
     deviceState = RUN;
@@ -215,7 +245,7 @@ void getRun() {
       Serial.println("Start sequence");
       trialIdx = 0;
       modulationState = true;
-      lastTrialStartTime = micros()-trialDurMicroSecs;
+      lastTrialStartTime = micros() - trialDurMicroSecs;
       sequenceStartTime = micros();
     }
     if (strncmp(inputString, "SP", 2) == 0) {

@@ -51,6 +51,9 @@ classdef CombiAirControl < handle
         serialClose(obj)
         startModulation(obj)
         stopModulation(ob)
+        setPressure(obj,pressureSetting)
+        setDuration(obj,durationMs)
+        triggerPuff(obj)
 
     end
 end
