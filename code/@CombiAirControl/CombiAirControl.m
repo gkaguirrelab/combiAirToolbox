@@ -49,6 +49,7 @@ classdef CombiAirControl < handle
         % Required methds
         serialOpen(obj)
         serialClose(obj)
+        setRunMode(obj)        
         sendPressures(obj,stimPressuresPSI)
         sendDurations(obj,stimDursMs)
         sendSequence(obj,stimIdxSeq)
