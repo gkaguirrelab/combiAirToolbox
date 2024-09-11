@@ -25,10 +25,14 @@ end
 writeline(obj.serialObj,'SI');
 readline(obj.serialObj);
 
+% Pass the number of trials
+writeline(obj.serialObj,num2str(length(stimIdxSeq)));
+readline(obj.serialObj);
+
 % Loop over the sequence and write the values
 for ii=1:length(stimIdxSeq)
     % Each value is sent as an integer
-    writeline(obj.serialObj,num2str(stimIdxSeq(ii));
+    writeline(obj.serialObj,num2str(stimIdxSeq(ii)));
     readline(obj.serialObj);
 end
 

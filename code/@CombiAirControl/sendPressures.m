@@ -25,7 +25,7 @@ readline(obj.serialObj);
 % Loop over the sequence and write the values
 for ii=1:length(stimPressuresPSI)
     % Each value is sent as an float
-    writeline(obj.serialObj,num2str(stimPressuresPSI(ii));
+    writeline(obj.serialObj,num2str(stimPressuresPSI(ii)));
     readline(obj.serialObj);
 end
 
