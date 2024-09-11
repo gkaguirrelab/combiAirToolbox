@@ -79,6 +79,7 @@ int nTrials = sizeof(stimIdxSeq) / sizeof(stimIdxSeq[0]);
 
 // Puff delivery values in direct mode
 float stimPressurePSIDirect = 0;
+int stimDurMsDirect = 0;
 
 // setup
 void setup() {
@@ -237,7 +238,7 @@ void getDirect() {
     Serial.println("SP:");
     clearInputString();
     waitForNewString();
-    stimPressureDirect = atoi(inputString);
+    stimPressurePSIDirect = atoi(inputString);
     Serial.println(stimPressurePSIDirect);
     clearInputString();
     setPressure(stimPressurePSIDirect);
@@ -380,12 +381,13 @@ void deliverPuff(int puffDuration) {
   digitalWrite(controlLineBlue, LOW);
 }
 
-int nTypes() int maxVal = 0;
-for (int ii = 0; ii < nTrials; ii++) {
-  maxVal = max(stimIdxSeq[ii], maxVal);
-}
-maxVal = maxVal + 1;
-return maxVal;
+int nTypes()  {
+  int maxVal = 0;
+  for (int ii = 0; ii < nTrials; ii++) {
+    maxVal = max(stimIdxSeq[ii], maxVal);
+  }
+  maxVal = maxVal + 1;
+  return maxVal;
 }
 
 //For printLine

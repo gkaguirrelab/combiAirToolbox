@@ -1,4 +1,5 @@
-% Object to support controlling the AirPuff device created by Vincent Lau
+% Object to support controlling the AirPuff device created by Vincent Lau.
+% The device houses an Arduino nano, with a baud rate of 115200.
 
 classdef CombiAirControl < handle
 
