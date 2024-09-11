@@ -1,4 +1,4 @@
-function stopModulation(obj)
+function stopSequence(obj)
 
 % Check that we have an open connection
 if isempty(obj.serialObj)

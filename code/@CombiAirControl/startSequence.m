@@ -1,4 +1,4 @@
-function startModulation(obj)
+function startSequence(obj)
 
 % Check that we have an open connection
 if isempty(obj.serialObj)

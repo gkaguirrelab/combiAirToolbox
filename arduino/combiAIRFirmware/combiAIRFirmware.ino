@@ -38,6 +38,9 @@ const int pressureSetTimeMs = 1000;     // Time required for adjusting the press
 const int pistonTransitDurMs = 250;     // Time required for the piston to change position
 const int interPistonIntervalMs = 100;  // Brief delay between addressing the control lines
 
+// Fixed value that defines the conversion of desired PSI to device setting
+// We will eventually create a calibration procedure to set this value
+const float psiToSetting = 35.7143;
 
 // Define the device states
 enum { CONFIG,
@@ -57,10 +60,13 @@ unsigned long sequenceStartTime = micros();   // Initialize these with the clock
 unsigned long lastTrialStartTime = micros();  // Initialize these with the clock
 int trialIdx = 0;                             // We begin waiting for the zeroth trial
 
+// Safety limit
+int maxSetting = 1500;
+
 // Stimulus variables
-int stimPressuresPSI[] = { 0, 3, 7, 15, 30 };
-int stimSettings[] = { 0, 107, 250, 535, 1050 };
-int stimPressureIdxSeq[] = {
+float stimPressuresPSI[] = { 0, 3, 7, 15, 30 };
+int stimDursMs[] = { 250, 250, 250, 250, 250 };
+int stimIdxSeq[] = {
   0, 3,
   4, 0, 2, 3, 0, 0, 0, 4, 2, 2, 2, 3, 3, 3, 1, 4, 0, 1, 2, 4, 1, 3, 4, 3, 1,
   2, 2, 1, 4, 3, 4, 1, 1, 4, 1, 0, 0, 3, 1, 3, 3, 0, 4, 1, 4, 4, 0, 0, 1, 4,
@@ -69,20 +75,10 @@ int stimPressureIdxSeq[] = {
   0, 1, 3, 2, 0, 1, 1, 3, 0, 1, 0, 4, 0, 4, 3, 2, 4, 4, 4, 2, 4, 3, 0, 3, 3,
   0, 0
 };
-int stimDurMsSeq[] = {
-  250, 250,
-  250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250,
-  250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250,
-  250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250,
-  250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250,
-  250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 250,
-  250, 250
-};
-int nTrials = sizeof(stimPressureIdxSeq) / sizeof(stimPressureIdxSeq[0]);
+int nTrials = sizeof(stimIdxSeq) / sizeof(stimIdxSeq[0]);
 
 // Puff delivery values in direct mode
-int stimDurMsDirect = 250;
-int stimPressureDirect = 0;
+float stimPressurePSIDirect = 0;
 
 // setup
 void setup() {
@@ -109,8 +105,8 @@ void setup() {
   mcp.setChannelValue(MCP4728_CHANNEL_C, 0);
   mcp.setChannelValue(MCP4728_CHANNEL_D, 0);
 
-  // Set the pressure to zero
-  setPressure(stimSettings[stimPressureIdxSeq[trialIdx]]);
+  // Set the pressure to the value of the first trial
+  setPressure(stimPressuresPSI[stimIdxSeq[0]]);
 
   // Show the console menu
   showModeMenu();
@@ -137,13 +133,13 @@ void loop() {
       // Update the lastTime
       lastTrialStartTime = currentTime;
       // Report the trial
-      printLine("trial: ", trialIdx + 1, " / ", nTrials, ", PSI: ", stimPressuresPSI[stimPressureIdxSeq[trialIdx]]);
+      printLine("trial: ", trialIdx + 1, " / ", nTrials, ", PSI: ", stimPressuresPSI[stimIdxSeq[trialIdx]]);
       // Deliver a puff
-      deliverPuff(stimDurMsSeq[trialIdx]);
+      deliverPuff(stimDursMs[stimIdxSeq[trialIdx]]);
       // Advance the trial count
       trialIdx++;
       // Set the pressure for the next trial
-      setPressure(stimSettings[stimPressureIdxSeq[trialIdx]]);
+      setPressure(stimPressuresPSI[stimIdxSeq[trialIdx]]);
     }
     // Check if we have finished the sequence
     if (trialIdx > (nTrials - 1)) {
@@ -179,6 +175,8 @@ void getConfig() {
     // Switch to run mode
     modulationState = false;
     deviceState = RUN;
+    // Set the pressure to the value of the first trial
+    setPressure(stimPressuresPSI[stimIdxSeq[0]]);
     showModeMenu();
   }
   if (strncmp(inputString, "DM", 2) == 0) {
@@ -186,6 +184,46 @@ void getConfig() {
     modulationState = false;
     deviceState = DIRECT;
     showModeMenu();
+  }
+  if (strncmp(inputString, "SI", 2) == 0) {
+    // Pass an index sequence
+    Serial.println("SI:");
+    clearInputString();
+    waitForNewString();
+    nTrials = atoi(inputString);
+    Serial.println(nTrials);
+    clearInputString();
+    int stimIdxSeq[nTrials];
+    for (int ii = 0; ii < nTrials; ii++) {
+      waitForNewString();
+      stimIdxSeq[ii] = atoi(inputString);
+      Serial.println(stimIdxSeq[ii]);
+      clearInputString();
+    }
+  }
+  if (strncmp(inputString, "SP", 2) == 0) {
+    // Pass a set of PSI levels
+    Serial.println("SP:");
+    clearInputString();
+    float stimPressuresPSI[nTypes()];
+    for (int ii = 0; ii < nTypes(); ii++) {
+      waitForNewString();
+      stimPressuresPSI[ii] = atof(inputString);
+      Serial.println(stimPressuresPSI[ii]);
+      clearInputString();
+    }
+  }
+  if (strncmp(inputString, "SD", 2) == 0) {
+    // Pass a set of stimulus durations
+    Serial.println("SD:");
+    clearInputString();
+    int stimDursMs[nTypes()];
+    for (int ii = 0; ii < nTypes(); ii++) {
+      waitForNewString();
+      stimDursMs[ii] = atoi(inputString);
+      Serial.println(stimDursMs[ii]);
+      clearInputString();
+    }
   }
   clearInputString();
 }
@@ -200,18 +238,18 @@ void getDirect() {
     clearInputString();
     waitForNewString();
     stimPressureDirect = atoi(inputString);
-    Serial.println(stimPressureDirect);
+    Serial.println(stimPressurePSIDirect);
     clearInputString();
-    setPressure(stimPressureDirect);
+    setPressure(stimPressurePSIDirect);
   }
 
-   // Set the stimulus duration in ms.
+  // Set the stimulus duration in ms.
   if (strncmp(inputString, "SD", 2) == 0) {
     Serial.println("SD:");
     clearInputString();
     waitForNewString();
     stimDurMsDirect = atoi(inputString);
-    Serial.println(stimPressureDirect);
+    Serial.println(stimDurMsDirect);
     clearInputString();
   }
 
@@ -225,6 +263,8 @@ void getDirect() {
   if (strncmp(inputString, "RM", 2) == 0) {
     modulationState = false;
     deviceState = RUN;
+    // Set the pressure to the value of the first trial
+    setPressure(stimPressuresPSI[stimIdxSeq[0]]);
     showModeMenu();
   }
   if (strncmp(inputString, "CM", 2) == 0) {
@@ -244,6 +284,8 @@ void getRun() {
     if (strncmp(inputString, "GO", 2) == 0) {
       Serial.println("Start sequence");
       trialIdx = 0;
+      // Set the pressure to the value of the first trial
+      setPressure(stimPressuresPSI[stimIdxSeq[0]]);
       modulationState = true;
       lastTrialStartTime = micros() - trialDurMicroSecs;
       sequenceStartTime = micros();
@@ -310,8 +352,9 @@ void clearInputString() {
   stringComplete = false;
 }
 
-void setPressure(int pressureVal) {
-  mcp.setChannelValue(MCP4728_CHANNEL_B, pressureVal);
+void setPressure(int pressureValPSI) {
+  int pressureValSetting = round(pressureValPSI * psiToSetting);
+  mcp.setChannelValue(MCP4728_CHANNEL_B, pressureValSetting);
   delay(pressureSetTimeMs);
 }
 
@@ -335,6 +378,14 @@ void deliverPuff(int puffDuration) {
   delay(pistonTransitDurMs);
   // Close the valve for controlLineBlue, and we are done.
   digitalWrite(controlLineBlue, LOW);
+}
+
+int nTypes() int maxVal = 0;
+for (int ii = 0; ii < nTrials; ii++) {
+  maxVal = max(stimIdxSeq[ii], maxVal);
+}
+maxVal = maxVal + 1;
+return maxVal;
 }
 
 //For printLine
