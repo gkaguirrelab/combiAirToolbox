@@ -36,7 +36,7 @@ const int controlLineBlue = 11;  // pin that controls the blue trigger line
 // aspects of the stimulus delivery system
 const int pressureSetTimeMs = 1000;     // Time required for adjusting the pressure line
 const int pistonTransitDurMs = 250;     // Time required for the piston to change position
-const int interPistonIntervalMs = 100;  // Brief delay between addressing the control lines
+const int interLineIntervalMs = 100;  // Brief delay between addressing the control lines
 
 // Fixed value that defines the conversion of desired PSI to device setting
 // We will eventually create a calibration procedure to set this value
@@ -65,7 +65,7 @@ int maxSetting = 1500;
 
 // Stimulus variables
 float stimPressuresPSI[] = { 0, 3, 7, 15, 30 };
-int stimDursMs[] = { 250, 250, 250, 250, 250 };
+int stimDursMs[] = { 500, 500, 500, 500, 500 };
 int stimIdxSeq[] = {
   0, 3,
   4, 0, 2, 3, 0, 0, 0, 4, 2, 2, 2, 3, 3, 3, 1, 4, 0, 1, 2, 4, 1, 3, 4, 3, 1,
@@ -108,6 +108,11 @@ void setup() {
 
   // Set the pressure to the value of the first trial
   setPressure(stimPressuresPSI[stimIdxSeq[0]]);
+
+  // ensure that the piston is in the correct, closed position
+  digitalWrite(controlLineBlack, LOW);
+  delay(interLineIntervalMs);
+  digitalWrite(controlLineBlue, HIGH);
 
   // Show the console menu
   showModeMenu();
@@ -233,17 +238,22 @@ void getDirect() {
   // Operate in modal state waiting for input
   waitForNewString();
 
+  // Issue a puff at the currently set pressure
+  if (strncmp(inputString, "PP", 2) == 0) {
+    Serial.println("PP:");
+    clearInputString();
+    deliverPuff(stimDurMsDirect);
+  }
   // Set the stimulus pressure level.
   if (strncmp(inputString, "SP", 2) == 0) {
     Serial.println("SP:");
     clearInputString();
     waitForNewString();
-    stimPressurePSIDirect = atoi(inputString);
+    stimPressurePSIDirect = atof(inputString);
     Serial.println(stimPressurePSIDirect);
     clearInputString();
     setPressure(stimPressurePSIDirect);
   }
-
   // Set the stimulus duration in ms.
   if (strncmp(inputString, "SD", 2) == 0) {
     Serial.println("SD:");
@@ -253,14 +263,6 @@ void getDirect() {
     Serial.println(stimDurMsDirect);
     clearInputString();
   }
-
-  // Issue a puff at the currently set pressure
-  if (strncmp(inputString, "PP", 2) == 0) {
-    Serial.println("PP:");
-    clearInputString();
-    deliverPuff(stimDurMsDirect);
-  }
-
   if (strncmp(inputString, "RM", 2) == 0) {
     modulationState = false;
     deviceState = RUN;
@@ -355,33 +357,40 @@ void clearInputString() {
 
 void setPressure(int pressureValPSI) {
   int pressureValSetting = round(pressureValPSI * psiToSetting);
+  pressureValSetting = min(maxSetting,pressureValSetting);
   mcp.setChannelValue(MCP4728_CHANNEL_B, pressureValSetting);
   delay(pressureSetTimeMs);
 }
 
 void deliverPuff(int puffDuration) {
-  // To deliver a puff we open the valve on the "controlLineBlack"
+  // To deliver a puff we first turn off the blue control line,
+  // which is keeping the plunger in the closed position
+  digitalWrite(controlLineBlue, LOW);
+  // Wait briefly between addressing lines
+  delay(interLineIntervalMs);
+  // Now we open the valve on the "controlLineBlack"
   // trigger line. This pushes the piston to the open position
   digitalWrite(controlLineBlack, HIGH);
+  // We now allow some time to pass so that the piston can move
+  // into the open position.
+  delay(pistonTransitDurMs);
   // We now wait for the puffDuration
   delay(puffDuration);
   // We now move the piston to the closed position. To do so,
   // we close the "controlLineBlack" valve, and open the valve
   // on the "controlLineBlue" trigger line. There is a brief delay
-  // (the interPistonInterval) to allow the black control line to
+  // (the interLineIntervalMs) to allow the black control line to
   // drop in pressure before we attempt to pressurize the blue
   // control line.
   digitalWrite(controlLineBlack, LOW);
-  delay(interPistonIntervalMs);
+  delay(interLineIntervalMs);
   digitalWrite(controlLineBlue, HIGH);
-  // We now allow some time to pass so that the piston can move
-  // back to the off position.
+  // Allow some time to pass so that the piston can fully move
+  // into the closed position.
   delay(pistonTransitDurMs);
-  // Close the valve for controlLineBlue, and we are done.
-  digitalWrite(controlLineBlue, LOW);
 }
 
-int nTypes()  {
+int nTypes() {
   int maxVal = 0;
   for (int ii = 0; ii < nTrials; ii++) {
     maxVal = max(stimIdxSeq[ii], maxVal);
