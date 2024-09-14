@@ -54,6 +54,7 @@ classdef CombiAirControl < handle
         sendPressures(obj,stimPressuresPSI)
         sendDurations(obj,stimDursMs)
         sendSequence(obj,stimIdxSeq)
+        sendTrialDur(obj,trialDurSecs)
         startSequence(obj)
         stopSequence(obj)
         setPressureDirect(obj,pressureSetting)
