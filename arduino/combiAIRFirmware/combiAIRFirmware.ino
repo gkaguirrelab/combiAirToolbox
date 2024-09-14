@@ -34,9 +34,9 @@ const int controlLineBlue = 11;  // pin that controls the blue trigger line
 
 // Fixed values that define the time required for physical movement of various
 // aspects of the stimulus delivery system
-const int pressureSetTimeMs = 1000;     // Time required for adjusting the pressure line
-const int pistonTransitDurMs = 250;     // Time required for the piston to change position
-const int interLineIntervalMs = 100;  // Brief delay between addressing the control lines
+const int pressureSetTimeMs = 1000;   // Time required for adjusting the pressure line
+const int pistonTransitDurMs = 250;   // Time required for the piston to change position
+const int interLineIntervalMs = 250;  // Brief delay between addressing the control lines
 
 // Fixed value that defines the conversion of desired PSI to device setting
 // We will eventually create a calibration procedure to set this value
@@ -64,22 +64,14 @@ int trialIdx = 0;                             // We begin waiting for the zeroth
 int maxSetting = 1500;
 
 // Stimulus variables
-float stimPressuresPSI[] = { 0, 3, 7, 15, 30 };
-int stimDursMs[] = { 500, 500, 500, 500, 500 };
-int stimIdxSeq[] = {
-  0, 3,
-  4, 0, 2, 3, 0, 0, 0, 4, 2, 2, 2, 3, 3, 3, 1, 4, 0, 1, 2, 4, 1, 3, 4, 3, 1,
-  2, 2, 1, 4, 3, 4, 1, 1, 4, 1, 0, 0, 3, 1, 3, 3, 0, 4, 1, 4, 4, 0, 0, 1, 4,
-  2, 0, 2, 4, 0, 3, 4, 2, 3, 2, 1, 2, 0, 0, 2, 0, 4, 4, 1, 2, 3, 1, 1, 1, 2,
-  1, 3, 1, 0, 2, 2, 0, 3, 2, 3, 4, 4, 3, 3, 2, 2, 4, 2, 1, 0, 3, 0, 2, 1, 1,
-  0, 1, 3, 2, 0, 1, 1, 3, 0, 1, 0, 4, 0, 4, 3, 2, 4, 4, 4, 2, 4, 3, 0, 3, 3,
-  0, 0
-};
-int nTrials = sizeof(stimIdxSeq) / sizeof(stimIdxSeq[0]);
+float stimPressuresPSI[10];
+int stimDursMs[10];
+int stimIdxSeq[200];
+int nTrials = 1;
 
 // Puff delivery values in direct mode
 float stimPressurePSIDirect = 0;
-int stimDurMsDirect = 0;
+int stimDurMsDirect = 500;
 
 // setup
 void setup() {
@@ -199,7 +191,6 @@ void getConfig() {
     nTrials = atoi(inputString);
     Serial.println(nTrials);
     clearInputString();
-    int stimIdxSeq[nTrials];
     for (int ii = 0; ii < nTrials; ii++) {
       waitForNewString();
       stimIdxSeq[ii] = atoi(inputString);
@@ -211,7 +202,6 @@ void getConfig() {
     // Pass a set of PSI levels
     Serial.println("SP:");
     clearInputString();
-    float stimPressuresPSI[nTypes()];
     for (int ii = 0; ii < nTypes(); ii++) {
       waitForNewString();
       stimPressuresPSI[ii] = atof(inputString);
@@ -223,13 +213,21 @@ void getConfig() {
     // Pass a set of stimulus durations
     Serial.println("SD:");
     clearInputString();
-    int stimDursMs[nTypes()];
     for (int ii = 0; ii < nTypes(); ii++) {
       waitForNewString();
       stimDursMs[ii] = atoi(inputString);
       Serial.println(stimDursMs[ii]);
       clearInputString();
     }
+  }
+  if (strncmp(inputString, "ST", 2) == 0) {
+    // Set the trial duration in seconds
+    Serial.println("ST:");
+    clearInputString();
+    waitForNewString();
+    float trialDurSecs = atof(inputString);
+    trialDurMicroSecs = round(trialDurSecs * 1e6);
+    Serial.println(trialDurSecs);
   }
   clearInputString();
 }
@@ -357,7 +355,7 @@ void clearInputString() {
 
 void setPressure(int pressureValPSI) {
   int pressureValSetting = round(pressureValPSI * psiToSetting);
-  pressureValSetting = min(maxSetting,pressureValSetting);
+  pressureValSetting = min(maxSetting, pressureValSetting);
   mcp.setChannelValue(MCP4728_CHANNEL_B, pressureValSetting);
   delay(pressureSetTimeMs);
 }
