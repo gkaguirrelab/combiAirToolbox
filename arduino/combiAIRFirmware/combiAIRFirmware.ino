@@ -99,7 +99,7 @@ void setup() {
   mcp.setChannelValue(MCP4728_CHANNEL_D, 0);
 
   // Set the pressure to the value of the first trial
-  setPressure(stimPressuresPSI[stimIdxSeq[0]]);
+  setPressure(stimPressuresPSI[stimIdxSeq[0]],pressureSetTimeMs);
 
   // ensure that the piston is in the correct, closed position
   digitalWrite(controlLineBlack, LOW);
@@ -137,14 +137,14 @@ void loop() {
       // Advance the trial count
       trialIdx++;
       // Set the pressure for the next trial
-      setPressure(stimPressuresPSI[stimIdxSeq[trialIdx]]);
+      setPressure(stimPressuresPSI[stimIdxSeq[trialIdx]],pressureSetTimeMs);
     }
     // Check if we have finished the sequence
     if (trialIdx > (nTrials - 1)) {
       float elapsedTimeSecs = (currentTime - sequenceStartTime) / 1e6;
       modulationState = false;
       printLine("Finished sequence. Elapsed time: ", elapsedTimeSecs + 1, " seconds.");
-      setPressure(0);
+      setPressure(0,pressureSetTimeMs);
       trialIdx = 0;
     }
   }
@@ -174,7 +174,7 @@ void getConfig() {
     modulationState = false;
     deviceState = RUN;
     // Set the pressure to the value of the first trial
-    setPressure(stimPressuresPSI[stimIdxSeq[0]]);
+    setPressure(stimPressuresPSI[stimIdxSeq[0]],pressureSetTimeMs);
     showModeMenu();
   }
   if (strncmp(inputString, "DM", 2) == 0) {
@@ -240,13 +240,16 @@ void getDirect() {
   if (strncmp(inputString, "PP", 2) == 0) {
     Serial.println("PP:");
     clearInputString();
+    // store the current puff pressure
     deliverPuff(stimDurMsDirect);
+    setPressure(stimPressurePSIDirect,pressureSetTimeMs);
   }
   if (strncmp(inputString, "CP", 2) == 0) {
     Serial.println("CP");
     clearInputString();
-    setPressure(0);
+    setPressure(0,pressureSetTimeMs);
     clearPiston();
+    setPressure(stimPressurePSIDirect,pressureSetTimeMs);
   }
   // Set the stimulus pressure level.
   if (strncmp(inputString, "SP", 2) == 0) {
@@ -256,7 +259,7 @@ void getDirect() {
     stimPressurePSIDirect = atof(inputString);
     Serial.println(stimPressurePSIDirect);
     clearInputString();
-    setPressure(stimPressurePSIDirect);
+    setPressure(stimPressurePSIDirect,pressureSetTimeMs);
   }
   // Set the stimulus duration in ms.
   if (strncmp(inputString, "SD", 2) == 0) {
@@ -271,7 +274,7 @@ void getDirect() {
     modulationState = false;
     deviceState = RUN;
     // Set the pressure to the value of the first trial
-    setPressure(stimPressuresPSI[stimIdxSeq[0]]);
+    setPressure(stimPressuresPSI[stimIdxSeq[0]],pressureSetTimeMs);
     showModeMenu();
   }
   if (strncmp(inputString, "CM", 2) == 0) {
@@ -292,7 +295,7 @@ void getRun() {
       Serial.println("Start sequence");
       trialIdx = 0;
       // Set the pressure to the value of the first trial
-      setPressure(stimPressuresPSI[stimIdxSeq[0]]);
+      setPressure(stimPressuresPSI[stimIdxSeq[0]],pressureSetTimeMs);
       modulationState = true;
       lastTrialStartTime = micros() - trialDurMicroSecs;
       sequenceStartTime = micros();
@@ -300,13 +303,13 @@ void getRun() {
     if (strncmp(inputString, "CP", 2) == 0) {
       Serial.println("Clear piston");
       modulationState = false;
-      setPressure(0);
+      setPressure(0,pressureSetTimeMs);
       clearPiston();
     }
     if (strncmp(inputString, "SP", 2) == 0) {
       Serial.println("Stop sequence");
       modulationState = false;
-      setPressure(0);
+      setPressure(0,pressureSetTimeMs);
     }
     if (strncmp(inputString, "DM", 2) == 0) {
       modulationState = false;
@@ -365,11 +368,11 @@ void clearInputString() {
   stringComplete = false;
 }
 
-void setPressure(int pressureValPSI) {
+void setPressure(int pressureValPSI, int delayMs) {
   int pressureValSetting = round(pressureValPSI * psiToSetting);
   pressureValSetting = min(maxSetting, pressureValSetting);
   mcp.setChannelValue(MCP4728_CHANNEL_B, pressureValSetting);
-  delay(pressureSetTimeMs);
+  delay(delayMs);
 }
 
 void deliverPuff(int puffDuration) {
@@ -386,6 +389,10 @@ void deliverPuff(int puffDuration) {
   delay(pistonTransitDurMs);
   // We now wait for the puffDuration
   delay(puffDuration);
+  // We set the delivery pressure to zero. This ensures that the
+  // puff ends. We don't wait while the pressure drops, but
+  // instead start moving the pistons
+  setPressure(0,0);
   // We now move the piston to the closed position. To do so,
   // we close the "controlLineBlack" valve, and open the valve
   // on the "controlLineBlue" trigger line. There is a brief delay
@@ -395,8 +402,8 @@ void deliverPuff(int puffDuration) {
   digitalWrite(controlLineBlack, LOW);
   delay(interLineIntervalMs);
   digitalWrite(controlLineBlue, HIGH);
-  // Allow some time to pass so that the piston can fully move
-  // into the closed position.
+  delay(pistonTransitDurMs);
+  delay(pistonTransitDurMs);
   delay(pistonTransitDurMs);
 }
 
