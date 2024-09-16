@@ -245,6 +245,7 @@ void getDirect() {
   if (strncmp(inputString, "CP", 2) == 0) {
     Serial.println("CP");
     clearInputString();
+    setPressure(0);
     clearPiston();
   }
   // Set the stimulus pressure level.

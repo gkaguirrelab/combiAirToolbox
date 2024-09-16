@@ -59,6 +59,7 @@ classdef CombiAirControl < handle
         stopSequence(obj)
         setPressureDirect(obj,pressureSetting)
         setDurationDirect(obj,durationMs)
+        clearPistonDirect(obj)
         triggerPuffDirect(obj)
 
     end
