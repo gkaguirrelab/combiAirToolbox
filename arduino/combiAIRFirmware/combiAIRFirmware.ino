@@ -242,6 +242,11 @@ void getDirect() {
     clearInputString();
     deliverPuff(stimDurMsDirect);
   }
+  if (strncmp(inputString, "CP", 2) == 0) {
+    Serial.println("CP");
+    clearInputString();
+    clearPiston();
+  }
   // Set the stimulus pressure level.
   if (strncmp(inputString, "SP", 2) == 0) {
     Serial.println("SP:");
@@ -290,6 +295,12 @@ void getRun() {
       modulationState = true;
       lastTrialStartTime = micros() - trialDurMicroSecs;
       sequenceStartTime = micros();
+    }
+    if (strncmp(inputString, "CP", 2) == 0) {
+      Serial.println("Clear piston");
+      modulationState = false;
+      setPressure(0);
+      clearPiston();
     }
     if (strncmp(inputString, "SP", 2) == 0) {
       Serial.println("Stop sequence");
@@ -385,6 +396,43 @@ void deliverPuff(int puffDuration) {
   digitalWrite(controlLineBlue, HIGH);
   // Allow some time to pass so that the piston can fully move
   // into the closed position.
+  delay(pistonTransitDurMs);
+}
+
+void clearPiston() {
+  // This is an operation to loosen up the piston when the
+  // system first comes on line.
+  // We first turn off the blue control line,
+  // which is keeping the plunger in the closed position, and
+  // wait an extra long time.
+  digitalWrite(controlLineBlue, LOW);
+  // Wait briefly between addressing lines
+  delay(interLineIntervalMs);
+  delay(interLineIntervalMs);
+  delay(interLineIntervalMs);
+  // Now we open the valve on the "controlLineBlack"
+  // trigger line. This pushes the piston to the open position
+  digitalWrite(controlLineBlack, HIGH);
+  // We now allow some time to pass so that the piston can move
+  // into the open position.
+  delay(pistonTransitDurMs);
+  delay(pistonTransitDurMs);
+  delay(pistonTransitDurMs);
+  // We now move the piston to the closed position. To do so,
+  // we close the "controlLineBlack" valve, and open the valve
+  // on the "controlLineBlue" trigger line. There is a brief delay
+  // (the interLineIntervalMs) to allow the black control line to
+  // drop in pressure before we attempt to pressurize the blue
+  // control line.
+  digitalWrite(controlLineBlack, LOW);
+  delay(interLineIntervalMs);
+  delay(interLineIntervalMs);
+  delay(interLineIntervalMs);
+  digitalWrite(controlLineBlue, HIGH);
+  // Allow some time to pass so that the piston can fully move
+  // into the closed position.
+  delay(pistonTransitDurMs);
+  delay(pistonTransitDurMs);
   delay(pistonTransitDurMs);
 }
 
