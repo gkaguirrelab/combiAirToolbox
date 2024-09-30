@@ -1,5 +1,5 @@
 function sendPressures(obj,stimPressuresPSI)
-% In configure mode, pass a set of trial pressures in PSI units
+% In configure mode, pass a set of stimulus pressures in PSI units
 
 % Check that we have an open connection
 if isempty(obj.serialObj)
@@ -20,6 +20,10 @@ end
 
 % Prepare to send the sequence
 writeline(obj.serialObj,'SP');
+readline(obj.serialObj);
+
+% Pass the number of stimulus types
+writeline(obj.serialObj,num2str(length(stimPressuresPSI)));
 readline(obj.serialObj);
 
 % Loop over the sequence and write the values

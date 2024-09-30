@@ -1,5 +1,5 @@
 function sendDurations(obj,stimDursMs)
-% In configure mode, pass a set of trial durations in ms units
+% In configure mode, pass a set of stimulus puff durations in ms units
 
 % Check that we have an open connection
 if isempty(obj.serialObj)
@@ -20,6 +20,10 @@ end
 
 % Prepare to send the sequence
 writeline(obj.serialObj,'SD');
+readline(obj.serialObj);
+
+% Pass the number of stimulus types
+writeline(obj.serialObj,num2str(length(stimDursMs)));
 readline(obj.serialObj);
 
 % Loop over the sequence and write the values

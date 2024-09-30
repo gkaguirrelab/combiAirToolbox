@@ -21,7 +21,7 @@ readline(obj.serialObj);
 
 % Say
 if obj.verbose
-    fprintf('Piston clear\n');
+    fprintf('Piston cleared\n');
 end
 
 end

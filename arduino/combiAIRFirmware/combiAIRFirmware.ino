@@ -36,7 +36,7 @@ const int controlLineBlue = 11;  // pin that controls the blue trigger line
 // aspects of the stimulus delivery system
 const int pressureSetTimeMs = 1000;   // Time required for adjusting the pressure line
 const int pistonTransitDurMs = 250;   // Time required for the piston to change position
-const int interLineIntervalMs = 250;  // Brief delay between addressing the control lines
+const int interLineIntervalMs = 500;  // Brief delay between addressing the control lines
 
 // Fixed value that defines the conversion of desired PSI to device setting
 // We will eventually create a calibration procedure to set this value
@@ -64,14 +64,14 @@ int trialIdx = 0;                             // We begin waiting for the zeroth
 int maxSetting = 1500;
 
 // Stimulus variables
-float stimPressuresPSI[10];
-int stimDursMs[10];
+float stimPressuresPSI[20];
+int stimDursMs[20];
 int stimIdxSeq[200];
 int nTrials = 1;
 
 // Puff delivery values in direct mode
 float stimPressurePSIDirect = 0;
-int stimDurMsDirect = 500;
+int stimDurMsDirect = 750;
 
 // setup
 void setup() {
@@ -98,8 +98,8 @@ void setup() {
   mcp.setChannelValue(MCP4728_CHANNEL_C, 0);
   mcp.setChannelValue(MCP4728_CHANNEL_D, 0);
 
-  // Set the pressure to the value of the first trial
-  setPressure(stimPressuresPSI[stimIdxSeq[0]],pressureSetTimeMs);
+  // Set the pressure to zero
+  setPressure(0,pressureSetTimeMs);
 
   // ensure that the piston is in the correct, closed position
   digitalWrite(controlLineBlack, LOW);
@@ -133,11 +133,9 @@ void loop() {
       // Report the trial
       printLine("trial: ", trialIdx + 1, " / ", nTrials, ", PSI: ", stimPressuresPSI[stimIdxSeq[trialIdx]]);
       // Deliver a puff
-      deliverPuff(stimDursMs[stimIdxSeq[trialIdx]]);
+      deliverPuff(stimPressuresPSI[stimIdxSeq[trialIdx]],stimDursMs[stimIdxSeq[trialIdx]]);
       // Advance the trial count
       trialIdx++;
-      // Set the pressure for the next trial
-      setPressure(stimPressuresPSI[stimIdxSeq[trialIdx]],pressureSetTimeMs);
     }
     // Check if we have finished the sequence
     if (trialIdx > (nTrials - 1)) {
@@ -173,8 +171,7 @@ void getConfig() {
     // Switch to run mode
     modulationState = false;
     deviceState = RUN;
-    // Set the pressure to the value of the first trial
-    setPressure(stimPressuresPSI[stimIdxSeq[0]],pressureSetTimeMs);
+    setPressure(0,pressureSetTimeMs);
     showModeMenu();
   }
   if (strncmp(inputString, "DM", 2) == 0) {
@@ -202,7 +199,11 @@ void getConfig() {
     // Pass a set of PSI levels
     Serial.println("SP:");
     clearInputString();
-    for (int ii = 0; ii < nTypes(); ii++) {
+    waitForNewString();
+    int nTypes = atoi(inputString);
+    Serial.println(nTypes);
+    clearInputString();
+    for (int ii = 0; ii < nTypes; ii++) {
       waitForNewString();
       stimPressuresPSI[ii] = atof(inputString);
       Serial.println(stimPressuresPSI[ii]);
@@ -213,7 +214,11 @@ void getConfig() {
     // Pass a set of stimulus durations
     Serial.println("SD:");
     clearInputString();
-    for (int ii = 0; ii < nTypes(); ii++) {
+    waitForNewString();
+    int nTypes = atoi(inputString);
+    Serial.println(nTypes);
+    clearInputString();
+    for (int ii = 0; ii < nTypes; ii++) {
       waitForNewString();
       stimDursMs[ii] = atoi(inputString);
       Serial.println(stimDursMs[ii]);
@@ -240,16 +245,13 @@ void getDirect() {
   if (strncmp(inputString, "PP", 2) == 0) {
     Serial.println("PP:");
     clearInputString();
-    // store the current puff pressure
-    deliverPuff(stimDurMsDirect);
-    setPressure(stimPressurePSIDirect,pressureSetTimeMs);
+    deliverPuff(stimPressurePSIDirect,stimDurMsDirect);
   }
   if (strncmp(inputString, "CP", 2) == 0) {
     Serial.println("CP");
     clearInputString();
-    setPressure(0,pressureSetTimeMs);
+    setPressure(0,0);
     clearPiston();
-    setPressure(stimPressurePSIDirect,pressureSetTimeMs);
   }
   // Set the stimulus pressure level.
   if (strncmp(inputString, "SP", 2) == 0) {
@@ -259,7 +261,6 @@ void getDirect() {
     stimPressurePSIDirect = atof(inputString);
     Serial.println(stimPressurePSIDirect);
     clearInputString();
-    setPressure(stimPressurePSIDirect,pressureSetTimeMs);
   }
   // Set the stimulus duration in ms.
   if (strncmp(inputString, "SD", 2) == 0) {
@@ -273,8 +274,7 @@ void getDirect() {
   if (strncmp(inputString, "RM", 2) == 0) {
     modulationState = false;
     deviceState = RUN;
-    // Set the pressure to the value of the first trial
-    setPressure(stimPressuresPSI[stimIdxSeq[0]],pressureSetTimeMs);
+    setPressure(0,pressureSetTimeMs);
     showModeMenu();
   }
   if (strncmp(inputString, "CM", 2) == 0) {
@@ -375,20 +375,19 @@ void setPressure(int pressureValPSI, int delayMs) {
   delay(delayMs);
 }
 
-void deliverPuff(int puffDuration) {
+void deliverPuff(float puffPressurePSI, int puffDurationMs) {
   // To deliver a puff we first turn off the blue control line,
   // which is keeping the plunger in the closed position
   digitalWrite(controlLineBlue, LOW);
-  // Wait briefly between addressing lines
-  delay(interLineIntervalMs);
+  // Set the pressure in the stimulus supply line
+  setPressure(puffPressurePSI,pressureSetTimeMs);
+  // // Wait briefly between addressing lines
+  // delay(interLineIntervalMs);
   // Now we open the valve on the "controlLineBlack"
   // trigger line. This pushes the piston to the open position
   digitalWrite(controlLineBlack, HIGH);
-  // We now allow some time to pass so that the piston can move
-  // into the open position.
-  delay(pistonTransitDurMs);
-  // We now wait for the puffDuration
-  delay(puffDuration);
+  // Wait for the puffDuration
+  delay(puffDurationMs);
   // We set the delivery pressure to zero. This ensures that the
   // puff ends. We don't wait while the pressure drops, but
   // instead start moving the pistons
@@ -402,9 +401,7 @@ void deliverPuff(int puffDuration) {
   digitalWrite(controlLineBlack, LOW);
   delay(interLineIntervalMs);
   digitalWrite(controlLineBlue, HIGH);
-  delay(pistonTransitDurMs);
-  delay(pistonTransitDurMs);
-  delay(pistonTransitDurMs);
+  delay(interLineIntervalMs);
 }
 
 void clearPiston() {
@@ -414,18 +411,14 @@ void clearPiston() {
   // which is keeping the plunger in the closed position, and
   // wait an extra long time.
   digitalWrite(controlLineBlue, LOW);
-  // Wait briefly between addressing lines
-  delay(interLineIntervalMs);
-  delay(interLineIntervalMs);
-  delay(interLineIntervalMs);
+  delay(1000);
   // Now we open the valve on the "controlLineBlack"
   // trigger line. This pushes the piston to the open position
+  // and we again wait an extra long time
   digitalWrite(controlLineBlack, HIGH);
   // We now allow some time to pass so that the piston can move
   // into the open position.
-  delay(pistonTransitDurMs);
-  delay(pistonTransitDurMs);
-  delay(pistonTransitDurMs);
+  delay(1000);
   // We now move the piston to the closed position. To do so,
   // we close the "controlLineBlack" valve, and open the valve
   // on the "controlLineBlue" trigger line. There is a brief delay
@@ -433,24 +426,11 @@ void clearPiston() {
   // drop in pressure before we attempt to pressurize the blue
   // control line.
   digitalWrite(controlLineBlack, LOW);
-  delay(interLineIntervalMs);
-  delay(interLineIntervalMs);
-  delay(interLineIntervalMs);
+  delay(1000);
   digitalWrite(controlLineBlue, HIGH);
   // Allow some time to pass so that the piston can fully move
   // into the closed position.
-  delay(pistonTransitDurMs);
-  delay(pistonTransitDurMs);
-  delay(pistonTransitDurMs);
-}
-
-int nTypes() {
-  int maxVal = 0;
-  for (int ii = 0; ii < nTrials; ii++) {
-    maxVal = max(stimIdxSeq[ii], maxVal);
-  }
-  maxVal = maxVal + 1;
-  return maxVal;
+  delay(1000);
 }
 
 //For printLine
