@@ -15,9 +15,8 @@ switch obj.deviceState
         obj.deviceState = 'DIRECT';
 end
 
-% Send pressure setting value
+% Initiate the puff; there will be no serial response back
 writeline(obj.serialObj,'PP');
-readline(obj.serialObj);
 
 % Say
 if obj.verbose
