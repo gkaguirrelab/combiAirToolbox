@@ -13,7 +13,7 @@ classdef PuffControl < handle
 
         baudrateSolenoid = 115200;
         linebreakSolenoid = "CR/LF";
-        portcodeSolenoid = 'usbmodem101';
+        portcodeSolenoid = 'usbmodem21201';
 
     end
 

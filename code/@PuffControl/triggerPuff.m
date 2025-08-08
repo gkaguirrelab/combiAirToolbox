@@ -7,7 +7,7 @@ if isempty(obj.serialObjSolenoid)
 end
 
 % Sanity check the side string
-assert(contains(side,{'L','R'}));
+assert(contains(side,{'L','R','ALL'}));
 
 % Prepare the command
 command = sprintf([side 'PULSE']);
