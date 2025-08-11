@@ -10,8 +10,8 @@ end
 % Sanity check the side string
 assert(contains(side,{'L','R'}));
 
-% Sanity check the value, cannot be greater than 20.
-assert(stimPressurePSI<=20);
+% Sanity check the value, cannot be greater than 40.
+assert(stimPressurePSI<=40);
 
 % Prepare the command
 command = sprintf([side 's%2.2f'],stimPressurePSI);
