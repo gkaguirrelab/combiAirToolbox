@@ -64,7 +64,7 @@ classdef PuffCameraControl < handle
         % Required methds
         openConnection(obj)
         closeConnection(obj)
-        defineRecording(obj,trialLabel)
+        prepareToRecord(obj,trialLabel)
         startRecording(obj,trialLabel)
 
     end

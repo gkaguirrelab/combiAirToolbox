@@ -1,4 +1,4 @@
-function defineRecording(obj,trialLabel)
+function prepareToRecord(obj,trialLabel)
 
 % Assemble the command
 thisLine = obj.commandBaseL;

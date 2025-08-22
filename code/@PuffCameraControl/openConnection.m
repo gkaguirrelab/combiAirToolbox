@@ -11,7 +11,7 @@ obj.ssh2_conn = ssh2_config(obj.HOSTNAME,obj.USERNAME,obj.PASSWORD);
 
 % Test the connection by creating the remote data directory
 try
-    command = char("mkdir " + fullfile(obj.rpiDataSaveStem,obj.rpiDataSavePath));
+    command = char("mkdir -p " + fullfile(obj.rpiDataSaveStem,obj.rpiDataSavePath));
     obj.ssh2_conn = ssh2_command(obj.ssh2_conn, command);
 catch
     % If we are unable to connect, check these things:
