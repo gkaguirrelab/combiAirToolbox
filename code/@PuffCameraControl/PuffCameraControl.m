@@ -42,15 +42,16 @@ classdef PuffCameraControl < handle
     methods
 
         % Constructor
-        function obj = PuffCameraControl(rpiDataSavePath,durationSecs,varargin)
+        function obj = PuffCameraControl(rpiDataSavePath,varargin)
 
             % input parser
             p = inputParser; p.KeepUnmatched = false;
+            p.addParameter('durationSecs',5,@isnumeric);
             p.addParameter('verbose',true,@islogical);
             p.parse(varargin{:})
 
             obj.rpiDataSavePath = rpiDataSavePath;
-            obj.durationSecs = durationSecs;
+            obj.durationSecs = p.Results.durationSecs;
 
             % Store the verbosity
             obj.verbose = p.Results.verbose;
