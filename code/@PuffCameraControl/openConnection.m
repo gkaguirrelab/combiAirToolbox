@@ -17,9 +17,9 @@ catch
     % If we are unable to connect, check these things:
     % - Make sure the the IP address defined for the HOSTNAME variable is
     % correct.
-    % - By default, the RPI is not able to accept the key exchange protocol
-    % that is used by the "ssh2_config" commands. To address this, edit
-    % this file on the RPI:
+    % - By default, the recording computer may not be able to accept the
+    % key exchange protocol that is used by the "ssh2_config" commands. To
+    % address this, edit this file on the recording computer:
     %   /etc/ssh/sshd_config
     % Add this line:
     %   KexAlgorithms +diffie-hellman-group14-sha1

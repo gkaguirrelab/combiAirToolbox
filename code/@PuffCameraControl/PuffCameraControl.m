@@ -5,14 +5,18 @@ classdef PuffCameraControl < handle
 
     properties (Constant)
 
-        USERNAME = 'testuser';
-        HOSTNAME = '10.102.11.73';
-        PASSWORD = 'test';
-        rpiDataSaveStem = '/media/testuser/EYEVIDEOS/';
-        rpiCommandDir = '/home/testuser/Documents/commands';
-        commandBaseL = "ffmpeg -loglevel quiet -f v4l2 -input_format gray -video_size 320x240 -framerate 280 -i /dev/video0 -vcodec libx264 -preset ultrafast -t {dur} /media/testuser/EYEVIDEOS/{path}/{label}_side-L.mp4 &"
-        commandBaseR = "ffmpeg -loglevel quiet -f v4l2 -input_format gray -video_size 320x240 -framerate 280 -i /dev/video2 -vcodec libx264 -preset ultrafast -t {dur} /media/testuser/EYEVIDEOS/{path}/{label}_side-R.mp4 &"
-
+        USERNAME = 'gka';
+        HOSTNAME = '128.91.12.22';
+        PASSWORD = 'braincrunch';
+        rpiDataSaveStem = '/media/gka/EYEVIDEOS/';
+        rpiCommandDir = '/home/gka/Documents/commands';
+        usbResetCommand = 'usbreset 004/002'; %% Should use the output of the usbreset command to get this ID
+        cameraSettingsCommand = 'v4l2-ctl -d /dev/video0 --set-ctrl=exposure_absolute=40 --set-ctrl=brightness=50';
+        recordingCommandL = "ffmpeg -loglevel quiet -f v4l2 -input_format gray -video_size 640x480 -framerate 180 -i /dev/video0 -vcodec rawvideo -pix_fmt gray -t {dur} -y {stem}/{path}/{label}_side-L.avi &"
+        recordingCommandR = "ffmpeg -loglevel quiet -f v4l2 -input_format gray -video_size 640x480 -framerate 180 -i /dev/video0 -vcodec rawvideo -pix_fmt gray -t {dur} -y {stem}/{path}/{label}_side-R.avi &"
+        cropCommand = 'ffmpeg -i {stem}/{path}/{label}_side-L.avi -vf "crop=320:240:160:120" -c:v rawvideo {stem}/{path}/{label}_side-L_cropped.avi'
+        rmVideoCommand = "rm {stem}/{path}/{label}_side-L.avi"
+        mvVideoCommand = "mv {stem}/{path}/{label}_side-L_cropped.avi {stem}/{path}/{label}_side-L.avi"
     end
 
     % Private properties
@@ -66,6 +70,6 @@ classdef PuffCameraControl < handle
         closeConnection(obj)
         prepareToRecord(obj,trialLabel)
         startRecording(obj,trialLabel)
-
+        cleanRecording(obj,trialLabel)
     end
 end
