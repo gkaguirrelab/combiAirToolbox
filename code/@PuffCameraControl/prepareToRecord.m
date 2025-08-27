@@ -7,7 +7,7 @@ obj.ssh2_conn = ssh2_command(obj.ssh2_conn, obj.usbResetCommand);
 obj.ssh2_conn = ssh2_command(obj.ssh2_conn, obj.cameraSettingsCommand);    
 
 % Assemble the command
-thisLine = obj.recordingCommandL;
+thisLine = obj.recordingCommandR;
 thisLine = strrep(thisLine,"{dur}",sprintf("%2.2f",obj.durationSecs));
 thisLine = strrep(thisLine,"{stem}",obj.rpiDataSaveStem);
 thisLine = strrep(thisLine,"{path}",obj.rpiDataSavePath);
