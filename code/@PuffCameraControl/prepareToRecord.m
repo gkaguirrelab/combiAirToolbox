@@ -1,7 +1,5 @@
 function prepareToRecord(obj,trialLabel)
 
-% Ignore the response to speed execution
-obj.ssh2_conn.command_ignore_response = 1;
 
 %% Reset the USB camera connect
 obj.ssh2_conn = ssh2_command(obj.ssh2_conn, obj.usbResetCommand);    
@@ -52,9 +50,6 @@ obj.ssh2_conn = scp_put(obj.ssh2_conn, localName, remotePath, localPath, remoteN
 % Make the script executable
 command = ['chmod +x ' fullfile(remotePath,remoteName)];
 obj.ssh2_conn = ssh2_command(obj.ssh2_conn, command);    
-
-% Re-enable receiving the response
-obj.ssh2_conn.command_ignore_response = 0;
 
 % Announce it
 if obj.verbose
