@@ -10,7 +10,7 @@ classdef PuffCameraControl < handle
         PASSWORD = 'braincrunch';
         rpiDataSaveStem = '/media/gka/EYEVIDEOS/';
         rpiCommandDir = '/home/gka/Documents/commands';
-        usbResetCommand = 'usbreset 004/002'; %% Should use the output of the usbreset command to get this ID
+        usbResetCommand = 'usbreset 004/003'; %% Should use the output of the usbreset command to get this ID
         cameraSettingsCommand = 'v4l2-ctl -d /dev/video0 --set-ctrl=exposure_absolute=40 --set-ctrl=brightness=50';
         recordingCommandL = "ffmpeg -loglevel quiet -f v4l2 -input_format gray -video_size 640x480 -framerate 180 -i /dev/video0 -vcodec rawvideo -pix_fmt gray -t {dur} -y {stem}/{path}/{label}_side-L.avi &"
         recordingCommandR = "ffmpeg -loglevel quiet -f v4l2 -input_format gray -video_size 640x480 -framerate 180 -i /dev/video0 -vcodec rawvideo -pix_fmt gray -t {dur} -y {stem}/{path}/{label}_side-R.avi &"
