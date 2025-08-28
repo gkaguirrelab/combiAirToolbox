@@ -3,13 +3,13 @@ function prepareToRecord(obj,trialLabel)
 % Ignore the response to speed execution
 obj.ssh2_conn.command_ignore_response = 1;
 
-% Reset the USB camera connect
+%% Reset the USB camera connect
 obj.ssh2_conn = ssh2_command(obj.ssh2_conn, obj.usbResetCommand);    
 
-% Set the camera exposure and brightness
+%% Set the camera exposure and brightness
 obj.ssh2_conn = ssh2_command(obj.ssh2_conn, obj.cameraSettingsCommand);    
 
-% Assemble the command
+%% Assemble the recording command
 thisLine = obj.recordingCommandR;
 thisLine = strrep(thisLine,"{dur}",sprintf("%2.2f",obj.durationSecs));
 thisLine = strrep(thisLine,"{stem}",obj.rpiDataSaveStem);
@@ -24,6 +24,29 @@ writelines(command,fullfile(localPath,localName))
 % Assign a name to the command file and move it to the recording computer
 remotePath = fullfile(obj.rpiCommandDir);
 remoteName = [trialLabel '.sh'];
+obj.ssh2_conn = scp_put(obj.ssh2_conn, localName, remotePath, localPath, remoteName);
+
+% Make the script executable
+command = ['chmod +x ' fullfile(remotePath,remoteName)];
+obj.ssh2_conn = ssh2_command(obj.ssh2_conn, command);    
+
+%% Assemble the command to check that the recorded video file has closed
+clear command
+command = "";
+command(1) = "FILE=""" + fullfile(obj.rpiDataSaveStem,obj.rpiDataSavePath,[trialLabel '_side-R.avi']) + char(34);
+command(2) = "while true; do";
+command(3) = "    if [[ -z ""$(lsof -t ""$FILE"" 2>/dev/null)"" ]]; then";
+command(4) = "        exit 0";
+command(5) = "    fi";
+command(6) = "done";
+
+% Define a local temp file path and name and save the comand text
+[localPath,localName] = fileparts(tempname());
+writelines(command,fullfile(localPath,localName))
+
+% Assign a name to the command file and move it to the recording computer
+remotePath = fullfile(obj.rpiCommandDir);
+remoteName = 'checkFileClosed.sh';
 obj.ssh2_conn = scp_put(obj.ssh2_conn, localName, remotePath, localPath, remoteName);
 
 % Make the script executable

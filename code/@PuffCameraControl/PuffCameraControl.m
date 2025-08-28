@@ -71,5 +71,6 @@ classdef PuffCameraControl < handle
         prepareToRecord(obj,trialLabel)
         startRecording(obj,trialLabel)
         cleanRecording(obj,trialLabel)
+        checkFileClosed(obj)
     end
 end
