@@ -1,6 +1,9 @@
 function prepareToRecord(obj,trialLabel)
 
 
+%% Set the audio source to the external headphone jacl
+obj.ssh2_conn = ssh2_command(obj.ssh2_conn, obj.audioSourceCommand);    
+
 %% Reset the USB camera connect
 obj.ssh2_conn = ssh2_command(obj.ssh2_conn, obj.usbResetCommand);    
 
