@@ -2,13 +2,13 @@ function prepareToRecord(obj,trialLabel)
 
 
 %% Set the audio source to the external headphone jacl
-obj.ssh2_conn = ssh2_command(obj.ssh2_conn, obj.audioSourceCommand);    
+[obj.ssh2_conn, ~] = ssh2_command(obj.ssh2_conn, obj.audioSourceCommand);    
 
 %% Reset the USB camera connect
-obj.ssh2_conn = ssh2_command(obj.ssh2_conn, obj.usbResetCommand);    
+[obj.ssh2_conn, ~] = ssh2_command(obj.ssh2_conn, obj.usbResetCommand);    
 
 %% Set the camera exposure and brightness
-obj.ssh2_conn = ssh2_command(obj.ssh2_conn, obj.cameraSettingsCommand);    
+[obj.ssh2_conn, ~] = ssh2_command(obj.ssh2_conn, obj.cameraSettingsCommand);    
 
 %% Assemble the recording command
 thisLine = obj.recordingCommandR;
@@ -25,11 +25,11 @@ writelines(command,fullfile(localPath,localName))
 % Assign a name to the command file and move it to the recording computer
 remotePath = fullfile(obj.rpiCommandDir);
 remoteName = [trialLabel '.sh'];
-obj.ssh2_conn = scp_put(obj.ssh2_conn, localName, remotePath, localPath, remoteName);
+[obj.ssh2_conn] = scp_put(obj.ssh2_conn, localName, remotePath, localPath, remoteName);
 
 % Make the script executable
 command = ['chmod +x ' fullfile(remotePath,remoteName)];
-obj.ssh2_conn = ssh2_command(obj.ssh2_conn, command);    
+[obj.ssh2_conn, ~] = ssh2_command(obj.ssh2_conn, command);    
 
 %% Assemble the command to check that the recorded video file has closed
 clear command
@@ -48,11 +48,11 @@ writelines(command,fullfile(localPath,localName))
 % Assign a name to the command file and move it to the recording computer
 remotePath = fullfile(obj.rpiCommandDir);
 remoteName = 'checkFileClosed.sh';
-obj.ssh2_conn = scp_put(obj.ssh2_conn, localName, remotePath, localPath, remoteName);
+[obj.ssh2_conn] = scp_put(obj.ssh2_conn, localName, remotePath, localPath, remoteName);
 
 % Make the script executable
 command = ['chmod +x ' fullfile(remotePath,remoteName)];
-obj.ssh2_conn = ssh2_command(obj.ssh2_conn, command);    
+[obj.ssh2_conn, ~] = ssh2_command(obj.ssh2_conn, command);    
 
 % Announce it
 if obj.verbose

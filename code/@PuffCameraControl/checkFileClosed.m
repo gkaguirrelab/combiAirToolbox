@@ -4,7 +4,7 @@ function checkFileClosed(obj)
 command = fullfile(obj.rpiCommandDir,'checkFileClosed.sh');
 
 % Issue the command
-obj.ssh2_conn = ssh2_command(obj.ssh2_conn, command);
+[obj.ssh2_conn,~] = ssh2_command(obj.ssh2_conn, command);
 
 % Report it
 if obj.verbose
