@@ -24,7 +24,10 @@ catch
     % Add this line:
     %   KexAlgorithms +diffie-hellman-group14-sha1
     % then reboot the RPI.
-    error('Unable to connect to RPI. Take a look at the comments in this section of code for troubleshooting advice.');
+    %
+    % It is also possible that one must be connected by ethernet to the
+    % same port within the Penn network.
+    error('Unable to connect to the Linux computer. Take a look at the comments in this section of code for troubleshooting advice.');
 end
 
 
