@@ -4,12 +4,11 @@
 classdef PuffCameraControl < handle
 
     properties (Constant)
-
-        USERNAME = 'gka';
-        HOSTNAME = '10.30.10.205';
-        PASSWORD = 'braincrunch';
-        rpiDataSaveStem = '/media/gka/EYEVIDEOS/';
-        rpiCommandDir = '/home/gka/Documents/commands';
+        USERNAME = getpref('combiAirToolbox','linuxBoxUsername');
+        HOSTNAME = getpref('combiAirToolbox','linuxBoxHostname');
+        PASSWORD = getpref('combiAirToolbox','linuxBoxPassword');
+        rpiDataSaveStem = getpref('combiAirToolbox','linuxBoxPathstem');
+        rpiCommandDir = getpref('combiAirToolbox','linuxBoxCommandDir');
         audioSourceCommand = 'pactl set-default-source alsa_input.pci-0000_05_00.6.analog-stereo'; % Use the external headphone jack source
         usbResetCommand = 'usbreset 2560:c124'; %% This is the product and vendor ID for the right eye camera
         cameraSettingsCommand = 'v4l2-ctl -d /dev/video0 --set-ctrl=exposure_absolute=40 --set-ctrl=brightness=40';

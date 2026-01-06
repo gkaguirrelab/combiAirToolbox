@@ -40,4 +40,11 @@ end
 % Set preferences for project output
 setpref(projectName,'dropboxBaseDir',dropboxBaseDir); % main directory path 
 
+% Set preferences for the linux IR camera recording computer
+setpref(projectName,'linuxBoxPassword','PUTYOURVALUEHERE'); % main directory path 
+setpref(projectName,'linuxBoxHostname','10.30.10.205'); % main directory path 
+setpref(projectName,'linuxBoxUsername','gka'); % main directory path 
+setpref(projectName,'linuxBoxPathstem','/media/gka/EYEVIDEOS/'); % main directory path 
+setpref(projectName,'linuxBoxCommandDir','/home/gka/Documents/commands'); % main directory path 
+
 end
