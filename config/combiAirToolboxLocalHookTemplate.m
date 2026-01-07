@@ -44,7 +44,7 @@ setpref(projectName,'dropboxBaseDir',dropboxBaseDir); % main directory path
 setpref(projectName,'linuxBoxPassword','PUTYOURVALUEHERE'); % main directory path 
 setpref(projectName,'linuxBoxHostname','10.30.10.205'); % main directory path 
 setpref(projectName,'linuxBoxUsername','gka'); % main directory path 
-setpref(projectName,'linuxBoxPathstem','/media/gka/EYEVIDEOS/'); % main directory path 
+setpref(projectName,'linuxBoxPathstem','/media/gka/external/'); % main directory path 
 setpref(projectName,'linuxBoxCommandDir','/home/gka/Documents/commands'); % main directory path 
 
 end
