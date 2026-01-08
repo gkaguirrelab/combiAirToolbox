@@ -44,7 +44,7 @@ setpref(projectName,'dropboxBaseDir',dropboxBaseDir); % main directory path
 setpref(projectName,'linuxBoxPassword','PUTYOURVALUEHERE'); % main directory path 
 setpref(projectName,'linuxBoxHostname','10.30.10.205'); % main directory path 
 setpref(projectName,'linuxBoxUsername','gka'); % main directory path 
-setpref(projectName,'linuxBoxPathstem','/media/gka/EXTERNAL/Aguirre-Brainard Lab Dropbox/Ruby Bouhassira/BLINK_raw/PuffLight/'); % main directory path 
+setpref(projectName,'linuxBoxPathstem','/media/gka/EXTERNAL/''Aguirre-Brainard Lab Dropbox''/''Ruby Bouhassira''/BLNK_raw/PuffLight'); % main directory path 
 setpref(projectName,'linuxBoxCommandDir','/home/gka/Documents/commands'); % main directory path 
 
 end
