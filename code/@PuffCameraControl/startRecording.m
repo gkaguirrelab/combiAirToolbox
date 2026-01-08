@@ -1,7 +1,7 @@
 function startRecording(obj,trialLabel)
 
 % Assemble the command
-command = [fullfile(obj.rpiCommandDir,[trialLabel '.sh']) ' &'];
+command = [fullfile(obj.rpiCommandDir,[trialLabel '.sh'])];
 
 % Ignore the response to speed execution
 obj.ssh2_conn.command_ignore_response = 1;

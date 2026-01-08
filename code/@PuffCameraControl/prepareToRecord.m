@@ -1,7 +1,7 @@
 function prepareToRecord(obj,trialLabel)
 
 %% Confirm or create the directory into which the data will be saved
-dirCommand = ['mkdir - p ' fullfile(obj.rpiDataSaveStem,obj.rpiDataSavePath)];
+dirCommand = ['mkdir -p ' fullfile(obj.rpiDataSaveStem,obj.rpiDataSavePath)];
 [obj.ssh2_conn, ~] = ssh2_command(obj.ssh2_conn, dirCommand);    
 
 %% Set the audio source to the external headphone jacl
