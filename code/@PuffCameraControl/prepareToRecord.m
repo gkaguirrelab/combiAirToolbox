@@ -14,7 +14,7 @@ dirCommand = ['mkdir -p ' fullfile(obj.rpiDataSaveStem,obj.rpiDataSavePath)];
 [obj.ssh2_conn, ~] = ssh2_command(obj.ssh2_conn, obj.cameraSettingsCommand);    
 
 %% Assemble the recording command
-thisLine = obj.recordingCommandR;
+thisLine = obj.recordingCommand;
 thisLine = strrep(thisLine,"{dur}",sprintf("%2.2f",obj.durationSecs));
 thisLine = strrep(thisLine,"{stem}",obj.rpiDataSaveStem);
 thisLine = strrep(thisLine,"{path}",obj.rpiDataSavePath);
